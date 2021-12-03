@@ -12,6 +12,11 @@ defmodule TeslaCoil.RouterTest do
     Tesla.Mock.mock(&TeslaCoil.Test.Router.request/1)
   end
 
+  test "trailing slash don't disturbs scope inheritance" do
+    request = get!("https://tesla.com/directory/trailing-slash")
+    assert request.body == %{message: "hello"}
+  end
+
   test "get request uses query params" do
     request = get!("https://tesla.com/mock?target=world")
 

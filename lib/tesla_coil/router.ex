@@ -7,7 +7,7 @@ defmodule TeslaCoil.Router do
 
   defmacro scope(path, alias_ \\ nil, do: block) do
     quote do
-      path = unquote(path)
+      path = unquote(path) |> String.replace(~r/\/$/, "")
       alias_ = unquote(alias_)
 
       Module.get_attribute(__MODULE__, :__scope_path__)
@@ -28,17 +28,19 @@ defmodule TeslaCoil.Router do
               Module.delete_attribute(__MODULE__, :__scope_path__)
           end
 
-        parent_scope ->
-          @__scope_path__ parent_scope ++ [path]
+        parent_path ->
+          parent_alias = @__scope_alias__
 
-          scope_alias_ = @__scope_alias__
+          # define scope block path and alias
+          @__scope_path__ parent_path ++ [path]
+          @__scope_alias__ [parent_alias, alias_] |> Module.concat()
 
-          @__scope_alias__ [@__scope_alias__, alias_] |> Module.concat()
-
+          # execute scope block
           unquote(block)
 
-          @__scope_path__ parent_scope
-          @__scope_alias__ scope_alias_
+          # return attributes to what it was in the parent scope to effectively exit current scope
+          @__scope_path__ parent_path
+          @__scope_alias__ parent_alias
       end
     end
   end
@@ -110,6 +112,7 @@ defmodule TeslaCoil.Router do
               env.url
               |> URI.parse()
               |> Map.get(:query)
+              |> Kernel.||("")
               |> URI.decode_query()
             else
               env.body
