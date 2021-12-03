@@ -5,7 +5,7 @@ defmodule TeslaCoil.Router do
 
   @http_methods [:get, :post, :put, :patch, :delete, :options, :connect, :trace, :head]
 
-  defmacro scope(path, alias_, do: block) do
+  defmacro scope(path, alias_ \\ nil, do: block) do
     quote do
       alias_ = unquote(alias_)
 
@@ -32,9 +32,7 @@ defmodule TeslaCoil.Router do
 
           scope_alias_ = @__scope_alias__
 
-          @__scope_alias__ if alias_,
-                             do: [@__scope_alias__, alias_] |> Module.concat(),
-                             else: @__scope_alias__
+          @__scope_alias__ [@__scope_alias__, alias_] |> Module.concat()
 
           unquote(block)
 
@@ -50,25 +48,27 @@ defmodule TeslaCoil.Router do
     |> Regex.compile!()
   end
 
-  defmacro new_route(method, path, function) do
-    [bind_quoted: [method: method, path: path, function: function]]
+  defmacro new_route(method, path, alias_, function) do
+    [bind_quoted: [method: method, path: path, alias_: alias_, function: function]]
     |> quote do
       Module.get_attribute(__MODULE__, :__scope_path__)
       |> case do
         nil ->
           raise "should be used inside a scope block"
 
-        scope ->
+        scope_path ->
           pattern =
-            scope
+            scope_path
             |> Kernel.++([path])
             |> Enum.join("")
             |> path_pattern()
 
+          controller = Module.concat(@__scope_alias__, alias_)
+
           @__route_accumulator__ %{
             method: method,
             pattern: pattern,
-            controller: @__scope_alias__,
+            controller: controller,
             function: function
           }
       end
@@ -76,11 +76,12 @@ defmodule TeslaCoil.Router do
   end
 
   @http_methods
-  |> Enum.each(fn method ->
-    defmacro unquote(method)(path, function) do
-      method = unquote(method)
+  |> Enum.each(fn method_ ->
+    defmacro unquote(method_)(path, alias_, function) do
+      method = unquote(method_)
 
-      quote(do: new_route(unquote(method), unquote(path), unquote(function)))
+      [bind_quoted: [method: method, path: path, alias_: alias_, function: function]]
+      |> quote(do: new_route(method, path, alias_, function))
     end
   end)
 
