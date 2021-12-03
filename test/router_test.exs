@@ -17,14 +17,22 @@ defmodule TeslaCoil.RouterTest do
     assert request.body == %{message: "hello"}
   end
 
-  test "get request uses query params" do
-    request = get!("https://tesla.com/mock?target=world")
-
-    assert request.body == %{message: "hello world"}
-  end
+  # ==================== params ===========================================
 
   test "non 'get' request uses body params" do
     request = post!("https://tesla.com/mock", %{target: "world"})
     assert request.body == %{message: "hello world"}
   end
+
+  test "'get' request uses query params" do
+    request = get!("https://tesla.com/mock?target=world")
+    assert request.body == %{message: "hello world"}
+  end
+
+  test "'get' request without query works anyway" do
+    request = get!("https://tesla.com/mock")
+    assert request.body == %{message: "hello"}
+  end
+
+  # ========================================================================
 end
