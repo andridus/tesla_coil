@@ -7,19 +7,20 @@ defmodule TeslaCoil.Router do
 
   defmacro scope(path, alias_ \\ nil, do: block) do
     quote do
+      path = unquote(path)
       alias_ = unquote(alias_)
 
       Module.get_attribute(__MODULE__, :__scope_path__)
       |> case do
         nil ->
-          unquote(path)
+          path
           |> URI.parse()
           |> case do
             %{host: nil} ->
               raise "Primary scope must be a base path with at least scheme (e.g.: 'https://') and domain"
 
             _ ->
-              @__scope_path__ [unquote(path)]
+              @__scope_path__ [path]
               @__scope_alias__ alias_
 
               unquote(block)
@@ -28,7 +29,7 @@ defmodule TeslaCoil.Router do
           end
 
         parent_scope ->
-          @__scope_path__ parent_scope ++ [unquote(path)]
+          @__scope_path__ parent_scope ++ [path]
 
           scope_alias_ = @__scope_alias__
 
