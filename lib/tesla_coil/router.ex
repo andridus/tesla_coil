@@ -104,7 +104,7 @@ defmodule TeslaCoil.Router do
       end)
       |> case do
         nil ->
-          raise "URL \"#{env.url}\" is not mocked"
+          raise "URL \"#{env.url}\" don't match any mocked route"
 
         route ->
           args =
