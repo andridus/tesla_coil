@@ -12,7 +12,7 @@ defmodule TeslaCoil do
       :world
 
   """
-  def hello do
-    :world
+  defmacro __using__(_) do
+    quote(do: use TeslaCoil.Router)
   end
 end
