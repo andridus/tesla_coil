@@ -12,12 +12,23 @@ defmodule TeslaCoil.RouterTest do
     Tesla.Mock.mock(&TeslaCoil.Test.Router.request/1)
   end
 
-  test "trailing slash don't disturbs scope inheritance" do
+  # =========================================================
+  #                  PATH CONTEXT
+  # =========================================================
+
+  test "trailing slash on route definition don't disturbs scope inheritance" do
     request = get!("https://tesla.com/directory/trailing-slash")
     assert request.body == %{message: "hello"}
   end
 
-  # ==================== params ===========================================
+  test "trailing slash on url don't prevent route match" do
+    request = get!("https://tesla.com/mock/")
+    assert request.body == %{message: "hello"}
+  end
+
+  # ===============================================================
+  #                     PARAMS CONTEXT
+  # ===============================================================
 
   test "non 'get' request uses body params" do
     request = post!("https://tesla.com/mock", %{target: "world"})
