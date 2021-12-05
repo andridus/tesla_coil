@@ -1,5 +1,5 @@
 defmodule TeslaCoil.Test.Controller do
-  def default_success(_, params), do: %{body: build_body(params), status: 200}
+  def default(_, params), do: %{body: build_body(params), status: 200}
 
   def path_param_with_number(_, params) do
     message = params["target_1"] |> build_body()
