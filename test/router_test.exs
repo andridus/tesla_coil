@@ -34,8 +34,13 @@ defmodule TeslaCoil.RouterTest do
     assert request.body == %{message: "hello"}
   end
 
-  test "path params" do
+  test "simple path params" do
     request = get!("https://tesla.com/path-param/world")
+    assert request.body == %{message: "hello world"}
+  end
+
+  test "path params with numbers" do
+    request = get!("https://tesla.com/path-param/with-number/world")
     assert request.body == %{message: "hello world"}
   end
 

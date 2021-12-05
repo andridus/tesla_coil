@@ -1,6 +1,13 @@
 defmodule TeslaCoil.Test.Controller do
-  def default_success(_, params), do: %{body: build_message(params), status: 200}
+  def default_success(_, params), do: %{body: build_body(params), status: 200}
 
-  defp build_message(%{"target" => target}), do: %{message: "hello #{target}"}
-  defp build_message(_), do: %{message: "hello"}
+  def path_param_with_number(_, params) do
+    message = params["target_1"] |> build_body()
+
+    %{body: message, status: 200}
+  end
+
+  defp build_body(%{"target" => target}), do: %{message: "hello #{target}"}
+  defp build_body(target) when is_binary(target), do: %{message: "hello #{target}"}
+  defp build_body(_), do: %{message: "hello"}
 end
