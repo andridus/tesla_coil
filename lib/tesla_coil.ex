@@ -4,6 +4,6 @@ defmodule TeslaCoil do
   """
 
   defmacro __using__(_) do
-    quote(do: use TeslaCoil.Router)
+    quote(do: use(TeslaCoil.Router))
   end
 end
