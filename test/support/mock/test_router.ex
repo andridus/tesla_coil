@@ -8,8 +8,14 @@ defmodule TeslaCoil.Test.Router do
     get "/path-param/:target", Controller, :default
     get "/path-param/with-number/:target_1", Controller, :path_param_with_number
 
-    scope "/directory/" do
-      get "/trailing-slash", Controller, :default
+    scope "/directory" do
+      scope "/trailing-slash" do
+        get "/", Controller, :default
+      end
+
+      scope "/" do
+        get "/same-directory", Controller, :default
+      end
     end
   end
 end

@@ -16,6 +16,11 @@ defmodule TeslaCoil.RouterTest do
   #                  PATH CONTEXT
   # =========================================================
 
+  test "scope with only a slash in its path just inherts the path" do
+    request = get!("https://tesla.com/directory/same-directory")
+    assert request.body == %{message: "hello"}
+  end
+
   test "trailing slash on route definition don't disturbs scope inheritance" do
     request = get!("https://tesla.com/directory/trailing-slash")
     assert request.body == %{message: "hello"}
@@ -41,7 +46,7 @@ defmodule TeslaCoil.RouterTest do
   end
 
   test "'get' request without query works anyway" do
-    request = get!("https://tesla.com/mock")
+    request = get!("https://tesla.com/")
     assert request.body == %{message: "hello"}
   end
 
