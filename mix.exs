@@ -27,7 +27,8 @@ defmodule TeslaCoil.MixProject do
   defp deps do
     [
       {:tesla, "~> 1.4"},
-      {:jason, "~> 1.2.2"}
+      {:jason, "~> 1.2.2"},
+      {:ecto, "~> 3.7.1"}
     ]
   end
 end
