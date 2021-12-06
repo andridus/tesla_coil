@@ -27,7 +27,7 @@ defmodule TeslaCoil.RouterTest do
   end
 
   test "trailing slash on url don't prevent route match" do
-    request = get!("https://tesla.com/mock/")
+    request = get!("https://tesla.com/")
     assert request.body == %{message: "hello"}
   end
 
@@ -36,17 +36,17 @@ defmodule TeslaCoil.RouterTest do
   # ===============================================================
 
   test "non 'get' request uses body params" do
-    request = post!("https://tesla.com/mock", %{target: "world"})
+    request = post!("https://tesla.com", %{target: "world"})
     assert request.body == %{message: "hello world"}
   end
 
   test "'get' request uses query params" do
-    request = get!("https://tesla.com/mock?target=world")
+    request = get!("https://tesla.com?target=world")
     assert request.body == %{message: "hello world"}
   end
 
   test "'get' request without query works anyway" do
-    request = get!("https://tesla.com/")
+    request = get!("https://tesla.com")
     assert request.body == %{message: "hello"}
   end
 
