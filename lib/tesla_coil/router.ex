@@ -15,18 +15,20 @@ defmodule TeslaCoil.Router do
         nil ->
           path
           |> URI.parse()
-          |> case do
-            %{host: nil} ->
-              raise "Primary scope must be a base path with at least scheme (e.g.: 'https://') and domain"
-
-            _ ->
-              @__scope_path__ [path]
-              @__scope_alias__ alias_
-
-              unquote(block)
-
-              Module.delete_attribute(__MODULE__, :__scope_path__)
+          |> Map.get(:host)
+          |> unless do
+            raise "Root path should have at least scheme and domain"
           end
+
+          # define scope block path and alias
+          @__scope_path__ [path]
+          @__scope_alias__ alias_
+
+            # execute scope block
+          unquote(block)
+
+          # quit root scope
+          Module.delete_attribute(__MODULE__, :__scope_path__)
 
         parent_path ->
           parent_alias = @__scope_alias__
