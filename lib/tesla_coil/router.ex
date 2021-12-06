@@ -46,7 +46,9 @@ defmodule TeslaCoil.Router do
   end
 
   def path_pattern(path) do
-    "^#{path}\/?(\\?.*)?$"
+    path
+    |> String.replace(~r/\/$/, "")
+    |> then(&"^#{&1}\/?(\\?.*)?$")
     |> String.replace(~r/\/:([\w|\d]*)/, "/(?<\\g{1}>[\\w|\\d|-]*)")
     |> Regex.compile!()
   end
