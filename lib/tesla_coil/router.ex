@@ -24,7 +24,7 @@ defmodule TeslaCoil.Router do
           @__scope_path__ [path]
           @__scope_alias__ alias_
 
-            # execute scope block
+          # execute scope block
           unquote(block)
 
           # quit root scope
