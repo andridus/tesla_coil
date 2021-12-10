@@ -2,6 +2,8 @@ defmodule TeslaCoil.RouterTest do
   use ExUnit.Case
   use Tesla
 
+  alias Tesla.Multipart
+
   adapter(Tesla.Mock)
 
   plug(Tesla.Middleware.JSON)
@@ -57,6 +59,15 @@ defmodule TeslaCoil.RouterTest do
 
   test "path params with numbers" do
     request = get!("https://tesla.com/path-param/with-number/world")
+    assert request.body == %{message: "hello world"}
+  end
+
+  test "multipart body" do
+    body =
+      Multipart.new()
+      |> Multipart.add_field("target", "world")
+
+    request = post!("https://tesla.com/multipart", body)
     assert request.body == %{message: "hello world"}
   end
 

@@ -101,7 +101,9 @@ defmodule TeslaCoil.Router do
   end
 
   defmacro request(env) do
-    quote bind_quoted: [env: env] do
+    quote do
+      env = unquote(env)
+
       @__routes__
       |> Enum.find(fn route ->
         route.method == env.method && env.url |> String.match?(route.pattern)
@@ -119,8 +121,7 @@ defmodule TeslaCoil.Router do
               |> Kernel.||("")
               |> URI.decode_query()
             else
-              env.body
-              |> Jason.decode!()
+              handle_body(env)
             end
             |> Map.merge(Regex.named_captures(route.pattern, env.url))
 
@@ -132,6 +133,25 @@ defmodule TeslaCoil.Router do
             _ -> raise "Mocked response must be a map with :body and :status keys"
           end
       end
+    end
+  end
+
+  defmacro handle_body(env) do
+    quote do
+      env = unquote(env)
+
+      case env.body do
+        %Tesla.Multipart{} -> multipart_to_params(env.body)
+        _ -> env.body |> Jason.decode!()
+      end
+    end
+  end
+
+  defmacro multipart_to_params(body) do
+    quote do
+      unquote(body).parts
+      |> Enum.map(&{&1.dispositions[:name], &1.body})
+      |> Map.new()
     end
   end
 
