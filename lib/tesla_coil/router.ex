@@ -150,10 +150,31 @@ defmodule TeslaCoil.Router do
   defmacro multipart_to_params(body) do
     quote do
       unquote(body).parts
-      |> Enum.map(&{&1.dispositions[:name], &1.body})
+      |> Enum.map(fn part ->
+        cond do
+          match?(%File.Stream{}, part.body) ->
+            %{
+              "filename" => part.dispositions[:filename],
+              "content" => File.read!(part.body.path)
+            }
+
+          part.dispositions[:filename] ->
+            %{
+              "filename" => part.dispositions[:filename],
+              "content" => part.body
+            }
+
+          :else ->
+            part.body
+        end
+        |> then(&{part.dispositions[:name], &1})
+      end)
       |> Map.new()
     end
   end
+
+  def multipart_name(part), do: part.dispositions[:name]
+  def multipart_filename(part), do: part.dispositions[:filename]
 
   defmacro __before_compile__(_) do
     quote do

@@ -62,13 +62,24 @@ defmodule TeslaCoil.RouterTest do
     assert request.body == %{message: "hello world"}
   end
 
+  @file_path "test/support/mock/mocked_file.txt"
   test "multipart body" do
     body =
       Multipart.new()
-      |> Multipart.add_field("target", "world")
+      |> Multipart.add_field("hello", "world")
+      |> Multipart.add_file(@file_path, name: "mocked_file", filename: "loaded_file.txt")
+      |> Multipart.add_file_content("built content", "built_file.txt", name: "mocked_file_content")
 
     request = post!("https://tesla.com/multipart", body)
-    assert request.body == %{message: "hello world"}
+
+    assert request.body == %{
+             "hello" => "world",
+             "mocked_file" => %{"content" => "loaded content", "filename" => "loaded_file.txt"},
+             "mocked_file_content" => %{
+               "content" => "built content",
+               "filename" => "built_file.txt"
+             }
+           }
   end
 
   # ========================================================================

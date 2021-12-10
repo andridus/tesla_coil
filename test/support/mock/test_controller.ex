@@ -8,7 +8,7 @@ defmodule TeslaCoil.Test.Controller do
   end
 
   def multipart(_, params) do
-    %{body: build_body(params), status: 200}
+    %{body: params, status: 200}
   end
 
   defp build_body(%{"target" => target}), do: %{message: "hello #{target}"}
