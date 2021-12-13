@@ -3,6 +3,8 @@ defmodule TeslaCoil.Router do
   Defines a router for Tesla mock
   """
 
+  alias TeslaCoil.Upload
+
   @http_methods [:get, :post, :put, :patch, :delete, :options, :connect, :trace, :head]
 
   @field_root_pattern ~r/([\w|\d]+)(\[.*\])*/
@@ -168,15 +170,15 @@ defmodule TeslaCoil.Router do
       |> Enum.map(fn part ->
         cond do
           match?(%File.Stream{}, part.body) ->
-            %{
-              "filename" => part.dispositions[:filename],
-              "content" => File.read!(part.body.path)
+            %Upload{
+              filename: part.dispositions[:filename],
+              content: File.read!(part.body.path)
             }
 
           part.dispositions[:filename] ->
-            %{
-              "filename" => part.dispositions[:filename],
-              "content" => part.body
+            %Upload{
+              filename: part.dispositions[:filename],
+              content: part.body
             }
 
           :else ->
