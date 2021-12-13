@@ -63,7 +63,40 @@ defmodule TeslaCoil.RouterTest do
   end
 
   @file_path "test/support/mock/mocked_file.txt"
-  test "multipart body" do
+  test "multipart nesting" do
+    # I've put everything togheter instead of making a test for every case
+    # as a way to also test if it works when everything is put together.
+    # Maybe i should also do individual tests for every case eventually.
+
+    body =
+      Multipart.new()
+      |> Multipart.add_field("keyless_array[]", "first")
+      |> Multipart.add_field("array_with_keys[5]", "fourth")
+      |> Multipart.add_field("array_with_keys[0]", "first")
+      |> Multipart.add_field("array_with_keys[1][apple]", "red")
+      |> Multipart.add_field("array_with_keys[1][lemon]", "green")
+      |> Multipart.add_field("keyless_array[]", "second")
+      |> Multipart.add_field("map[lemon]", "green")
+      |> Multipart.add_field("array_with_keys[2]", "third")
+      |> Multipart.add_field("map[apple]", "red")
+      |> Multipart.add_field("map[array][]", "first")
+      |> Multipart.add_field("map[array][]", "second")
+
+    request = post!("https://tesla.com/multipart", body)
+
+    assert request.body == %{
+             "array_with_keys" => [
+               "first",
+               %{"apple" => "red", "lemon" => "green"},
+               "third",
+               "fourth"
+             ],
+             "keyless_array" => ["first", "second"],
+             "map" => %{"apple" => "red", "array" => ["first", "second"], "lemon" => "green"}
+           }
+  end
+
+  test "multipart upload" do
     body =
       Multipart.new()
       |> Multipart.add_field("hello", "world")

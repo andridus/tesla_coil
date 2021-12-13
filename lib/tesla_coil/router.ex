@@ -5,6 +5,9 @@ defmodule TeslaCoil.Router do
 
   @http_methods [:get, :post, :put, :patch, :delete, :options, :connect, :trace, :head]
 
+  @field_root_pattern ~r/([\w|\d]+)(\[.*\])*/
+  @field_nesting_pattern ~r/\[([\w|\d]*)\]/
+
   defmacro scope(path, alias_ \\ nil, do: block) do
     quote do
       path = unquote(path) |> String.replace(~r/\/$/, "")
@@ -169,12 +172,67 @@ defmodule TeslaCoil.Router do
         end
         |> then(&{part.dispositions[:name], &1})
       end)
-      |> Map.new()
+      |> structure_params()
     end
   end
 
-  def multipart_name(part), do: part.dispositions[:name]
-  def multipart_filename(part), do: part.dispositions[:filename]
+  def structure_params(items) do
+    items
+    |> extract_paths()
+    |> build_tree()
+  end
+
+  defp extract_paths(fields) do
+    fields
+    |> Enum.map(fn {raw_key, value} ->
+      [[field | raw_nesting]] = Regex.scan(@field_root_pattern, raw_key, capture: :all_but_first)
+
+      nesting =
+        case raw_nesting do
+          [] ->
+            []
+
+          [string] ->
+            Regex.scan(@field_nesting_pattern, string, capture: :all_but_first) |> List.flatten()
+        end
+
+      {field, nesting, value}
+    end)
+  end
+
+  defp build_tree(list) do
+    list
+    |> group_by_nesting()
+    |> Enum.map(&handle_nesting/1)
+    |> finish_structure()
+  end
+
+  defp group_by_nesting(list) do
+    list
+    |> Enum.group_by(&elem(&1, 0), fn
+      {"", [], value} -> value
+      {_, [], value} -> {:leaf_node, value}
+      {_, nesting, value} -> {nesting, value}
+    end)
+  end
+
+  defp handle_nesting({"", list}), do: {"", list}
+  defp handle_nesting({k, [leaf_node: value]}), do: {k, value}
+  defp handle_nesting({k, list}), do: {k, list |> structure_nested()}
+
+  defp structure_nested(list) do
+    list
+    |> Enum.map(fn {[field | nesting], value} -> {field, nesting, value} end)
+    |> build_tree()
+  end
+
+  defp finish_structure([{"", list}]), do: list
+
+  defp finish_structure(list) do
+    if numeral_keys?(list), do: list |> Enum.map(&elem(&1, 1)), else: list |> Map.new()
+  end
+
+  defp numeral_keys?(list), do: list |> Enum.all?(&(&1 |> elem(0) |> String.match?(~r/^\d+$/)))
 
   defmacro __before_compile__(_) do
     quote do
