@@ -178,13 +178,14 @@ defmodule TeslaCoil.Router do
 
   def structure_params(items) do
     items
-    |> extract_paths()
+    |> extract_param_paths()
     |> build_tree()
   end
 
-  defp extract_paths(fields) do
+  defp extract_param_paths(fields) do
     fields
     |> Enum.map(fn {raw_key, value} ->
+      raw_key = "#{raw_key}"
       [[field | raw_nesting]] = Regex.scan(@field_root_pattern, raw_key, capture: :all_but_first)
 
       nesting =

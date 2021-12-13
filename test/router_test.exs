@@ -62,7 +62,16 @@ defmodule TeslaCoil.RouterTest do
     assert request.body == %{message: "hello world"}
   end
 
-  @file_path "test/support/mock/mocked_file.txt"
+  test "multipart atomic key sent" do
+    body =
+      Multipart.new()
+      |> Multipart.add_field(:atomic_key, "value")
+
+    request = post!("https://tesla.com/multipart", body)
+
+    assert request.body == %{"atomic_key" => "value"}
+  end
+
   test "multipart nesting" do
     # I've put everything togheter instead of making a test for every case
     # as a way to also test if it works when everything is put together.
@@ -96,6 +105,7 @@ defmodule TeslaCoil.RouterTest do
            }
   end
 
+  @file_path "test/support/mock/mocked_file.txt"
   test "multipart upload" do
     body =
       Multipart.new()
