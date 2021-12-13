@@ -8,7 +8,7 @@ defmodule TeslaCoil.Repo do
   @dictionary_key :tesla_coil_repo
 
   def create_table(schema) do
-    if list(schema),
+    if Process.get(:tesla_coil_repo)[schema],
       do: raise("Mocked table #{inspect(schema)} already exists"),
       else: upsert_table(schema, [])
   end
