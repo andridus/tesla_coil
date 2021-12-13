@@ -124,13 +124,13 @@ defmodule TeslaCoil.Router do
               |> Kernel.||("")
               |> URI.decode_query()
             else
-              handle_body(env)
+              handle_req_body(env)
             end
             |> Map.merge(Regex.named_captures(route.pattern, env.url))
 
           apply(route.controller, route.function, [env, args])
           |> case do
-            %{body: body, status: status} = result -> env |> Map.merge(result)
+            %{body: _, status: _} = result -> result |> handle_result(env)
             %{body: _} -> raise "Mocked response must have a :status key"
             %{} -> raise "Mocked response must have a :body key"
             _ -> raise "Mocked response must be a map with :body and :status keys"
@@ -139,7 +139,7 @@ defmodule TeslaCoil.Router do
     end
   end
 
-  defmacro handle_body(env) do
+  defmacro handle_req_body(env) do
     quote do
       env = unquote(env)
 
@@ -148,6 +148,18 @@ defmodule TeslaCoil.Router do
         _ -> env.body |> Jason.decode!()
       end
     end
+  end
+
+  def handle_result(result, env) do
+    env
+    |> Map.merge(result)
+    |> Map.update!(:body, &handle_resp_body/1)
+  end
+
+  defp handle_resp_body(body) do
+    if is_map(body) or is_list(body),
+      do: body |> Jason.encode!() |> Jason.decode!(),
+      else: body
   end
 
   defmacro multipart_to_params(body) do

@@ -20,17 +20,17 @@ defmodule TeslaCoil.RouterTest do
 
   test "scope with only a slash in its path just inherts the path" do
     request = get!("https://tesla.com/directory/same-directory")
-    assert request.body == %{message: "hello"}
+    assert request.body == %{"message" => "hello"}
   end
 
   test "trailing slash on route definition don't disturbs scope inheritance" do
     request = get!("https://tesla.com/directory/trailing-slash")
-    assert request.body == %{message: "hello"}
+    assert request.body == %{"message" => "hello"}
   end
 
   test "trailing slash on url don't prevent route match" do
     request = get!("https://tesla.com/")
-    assert request.body == %{message: "hello"}
+    assert request.body == %{"message" => "hello"}
   end
 
   # ===============================================================
@@ -39,27 +39,27 @@ defmodule TeslaCoil.RouterTest do
 
   test "non 'get' request uses body params" do
     request = post!("https://tesla.com", %{target: "world"})
-    assert request.body == %{message: "hello world"}
+    assert request.body == %{"message" => "hello world"}
   end
 
   test "'get' request uses query params" do
     request = get!("https://tesla.com?target=world")
-    assert request.body == %{message: "hello world"}
+    assert request.body == %{"message" => "hello world"}
   end
 
   test "'get' request without query works anyway" do
     request = get!("https://tesla.com")
-    assert request.body == %{message: "hello"}
+    assert request.body == %{"message" => "hello"}
   end
 
   test "simple path params" do
     request = get!("https://tesla.com/path-param/world")
-    assert request.body == %{message: "hello world"}
+    assert request.body == %{"message" => "hello world"}
   end
 
   test "path params with numbers" do
     request = get!("https://tesla.com/path-param/with-number/world")
-    assert request.body == %{message: "hello world"}
+    assert request.body == %{"message" => "hello world"}
   end
 
   test "multipart atomic key sent" do
