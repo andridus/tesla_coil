@@ -27,7 +27,22 @@ defmodule TeslaCoil.Repo do
 
   defp put_id(data), do: data |> Map.put(:id, Ecto.UUID.generate())
 
-  def get(schema, id), do: list(schema) |> Enum.find(&(&1.id == id))
+  def get(schema, id) do
+    list(schema)
+    |> Enum.find(&(&1.id == id))
+    |> case do
+      nil -> {:error, :not_found}
+      entry -> {:ok, entry}
+    end
+  end
+
+  def get!(schema, id) do
+    get(schema, id)
+    |> case do
+      {:ok, entry} -> entry
+      {:error, :not_found} -> raise "Mocked #{inspect(schema)} entry with id #{id} don't exists"
+    end
+  end
 
   def list(schema),
     do: repo_data()[schema] || raise("Mocked table #{inspect(schema)} don't exists")
