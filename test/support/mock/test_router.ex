@@ -7,6 +7,7 @@ defmodule TeslaCoil.Test.Router do
 
     get "/path-param/:target", Controller, :default
     get "/path-param/with-number/:target_1", Controller, :path_param_with_number
+    get "/file/:filename", Controller, :file
     post "/multipart", Controller, :multipart
 
     scope "/directory" do

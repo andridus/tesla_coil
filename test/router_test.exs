@@ -33,6 +33,11 @@ defmodule TeslaCoil.RouterTest do
     assert request.body == %{"message" => "hello"}
   end
 
+  test "filename with special characters matchs properly" do
+    request = get!("https://tesla.com/file/some-file.txt")
+    assert request.body == %{"filename" => "some-file.txt"}
+  end
+
   # ===============================================================
   #                     PARAMS CONTEXT
   # ===============================================================

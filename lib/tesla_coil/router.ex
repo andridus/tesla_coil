@@ -56,7 +56,7 @@ defmodule TeslaCoil.Router do
     path
     |> String.replace(~r/\/$/, "")
     |> then(&"^#{&1}\/?(\\?.*)?$")
-    |> String.replace(~r/\/:([\w|\d]*)/, "/(?<\\g{1}>[\\w|\\d|-]*)")
+    |> String.replace(~r/\/:([\w|\d]*)/, "/(?<\\g{1}>[^\/]*)")
     |> Regex.compile!()
   end
 
