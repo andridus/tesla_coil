@@ -115,7 +115,8 @@ defmodule TeslaCoil.Router do
       end)
       |> case do
         nil ->
-          raise "URL \"#{env.url}\" don't match any mocked route"
+          method = env.method |> Atom.to_string() |> String.upcase()
+          raise "Request #{method} \"#{env.url}\" don't match any mocked route"
 
         route ->
           args =
