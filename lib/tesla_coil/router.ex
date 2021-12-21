@@ -107,7 +107,7 @@ defmodule TeslaCoil.Router do
 
   defmacro request(env) do
     quote do
-      env = unquote(env)
+      env = unquote(env) |> lowercase_headers()
 
       @__routes__
       |> Enum.find(fn route ->
@@ -142,14 +142,28 @@ defmodule TeslaCoil.Router do
     end
   end
 
-  defmacro handle_req_body(env) do
-    quote do
-      env = unquote(env)
+  def lowercase_headers(env) do
+    env |> Map.update!(:headers, &Enum.map(&1, fn {k, v} -> {k |> String.downcase(), v} end))
+  end
 
-      case env.body do
-        %Tesla.Multipart{} -> multipart_to_params(env.body)
-        _ -> env.body |> Jason.decode!()
-      end
+  def handle_req_body(env) do
+    case env.body do
+      %Tesla.Multipart{} -> multipart_to_params(env.body)
+      body when is_map(body) -> body |> stringify_keys()
+      _ -> env |> handle_content_type()
+    end
+  end
+
+  def handle_content_type(%{body: body} = env) do
+    env.headers
+    |> Enum.find_value(fn
+      {"content-type", value} -> value |> String.downcase()
+      _ -> false
+    end)
+    |> case do
+      "application/json" -> body |> Jason.decode!()
+      "application/x-www-form-urlencoded" -> body |> URI.decode_query()
+      _ -> body
     end
   end
 
@@ -161,34 +175,32 @@ defmodule TeslaCoil.Router do
 
   defp handle_resp_body(body) do
     if is_map(body) or is_list(body),
-      do: body |> Jason.encode!() |> Jason.decode!(),
+      do: body |> stringify_keys(),
       else: body
   end
 
-  defmacro multipart_to_params(body) do
-    quote do
-      unquote(body).parts
-      |> Enum.map(fn part ->
-        cond do
-          match?(%File.Stream{}, part.body) ->
-            %Upload{
-              filename: part.dispositions[:filename],
-              content: File.read!(part.body.path)
-            }
+  defp multipart_to_params(body) do
+    body.parts
+    |> Enum.map(fn part ->
+      cond do
+        match?(%File.Stream{}, part.body) ->
+          %Upload{
+            filename: part.dispositions[:filename],
+            content: File.read!(part.body.path)
+          }
 
-          part.dispositions[:filename] ->
-            %Upload{
-              filename: part.dispositions[:filename],
-              content: part.body
-            }
+        part.dispositions[:filename] ->
+          %Upload{
+            filename: part.dispositions[:filename],
+            content: part.body
+          }
 
-          :else ->
-            part.body
-        end
-        |> then(&{part.dispositions[:name], &1})
-      end)
-      |> structure_params()
-    end
+        :else ->
+          part.body
+      end
+      |> then(&{part.dispositions[:name], &1})
+    end)
+    |> structure_params()
   end
 
   def structure_params(items) do
@@ -258,4 +270,6 @@ defmodule TeslaCoil.Router do
       def request(env), do: unquote(__MODULE__).request(env)
     end
   end
+
+  defp stringify_keys(data), do: data |> Jason.encode!() |> Jason.decode!()
 end

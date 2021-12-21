@@ -6,7 +6,7 @@ defmodule TeslaCoil.RouterTest do
 
   adapter(Tesla.Mock)
 
-  plug(Tesla.Middleware.JSON)
+  alias Tesla.Middleware.{FormUrlencoded, Headers, JSON}
 
   doctest TeslaCoil.Router
 
@@ -43,7 +43,11 @@ defmodule TeslaCoil.RouterTest do
   # ===============================================================
 
   test "non 'get' request uses body params" do
-    request = post!("https://tesla.com", %{target: "world"})
+    request =
+      [JSON]
+      |> Tesla.client()
+      |> post!("https://tesla.com", %{target: "world"})
+
     assert request.body == %{"message" => "hello world"}
   end
 
@@ -64,6 +68,27 @@ defmodule TeslaCoil.RouterTest do
 
   test "path params with numbers" do
     request = get!("https://tesla.com/path-param/with-number/world")
+    assert request.body == %{"message" => "hello world"}
+  end
+
+  test "handle some content types" do
+    [FormUrlencoded, JSON]
+    |> Enum.each(fn middleware ->
+      request =
+        [middleware]
+        |> Tesla.client()
+        |> post!("https://tesla.com", %{target: "world"})
+
+      assert request.body == %{"message" => "hello world"}
+    end)
+  end
+
+  test "content type header is case insensitive" do
+    request =
+      [{Headers, [{"cOnTent-TyPe", "aPpLiCaTiOn/JsOn"}]}]
+      |> Tesla.client()
+      |> post!("https://tesla.com", %{target: "world"})
+
     assert request.body == %{"message" => "hello world"}
   end
 
