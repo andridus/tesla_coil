@@ -6,12 +6,21 @@ defmodule TeslaCoil.RouterTest do
 
   adapter(Tesla.Mock)
 
-  alias Tesla.Middleware.{FormUrlencoded, Headers, JSON}
+  alias Tesla.Middleware.{FormUrlencoded, KeepRequest, Headers, JSON}
 
   doctest TeslaCoil.Router
 
   setup do
     Tesla.Mock.mock(&TeslaCoil.Test.Router.request/1)
+  end
+
+  # =========================================================
+  #                   RESULT CONTEXT
+  # =========================================================
+
+  test "can return plain text to tesla" do
+    request = get!("https://tesla.com/plain-text")
+    assert request.body == "some random text"
   end
 
   # =========================================================
