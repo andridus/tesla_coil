@@ -133,10 +133,11 @@ defmodule TeslaCoil.Router do
 
           apply(route.controller, route.function, [env, args])
           |> case do
+            {:error, error} -> {:error, error}
             %{body: _, status: _} = result -> result |> handle_result(env)
             %{body: _} -> raise "Mocked response must have a :status key"
             %{} -> raise "Mocked response must have a :body key"
-            _ -> raise "Mocked response must be a map with :body and :status keys"
+            _ -> raise "Mocked response must be an error tuple or a map with :body and :status keys"
           end
       end
     end
