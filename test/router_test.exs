@@ -6,7 +6,7 @@ defmodule TeslaCoil.RouterTest do
 
   adapter(Tesla.Mock)
 
-  alias Tesla.Middleware.{FormUrlencoded, KeepRequest, Headers, JSON}
+  alias Tesla.Middleware.{FormUrlencoded, Headers, JSON}
 
   doctest TeslaCoil.Router
 
