@@ -18,6 +18,7 @@ defmodule TeslaCoil.Test.Controller do
   def plain_text_result(_, _), do: %{body: "some random text", status: 200}
 
   defp build_body(%{"target" => target}), do: %{message: "hello #{target}"}
+  defp build_body(%{"_json" => target}), do: %{message: "hello #{target}"}
   defp build_body(target) when is_binary(target), do: %{message: "hello #{target}"}
   defp build_body(_), do: %{message: "hello"}
 end

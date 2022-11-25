@@ -133,11 +133,20 @@ defmodule TeslaCoil.Router do
 
           apply(route.controller, route.function, [env, args])
           |> case do
-            {:error, error} -> {:error, error}
-            %{body: _, status: _} = result -> result |> handle_result(env)
-            %{body: _} -> raise "Mocked response must have a :status key"
-            %{} -> raise "Mocked response must have a :body key"
-            _ -> raise "Mocked response must be an error tuple or a map with :body and :status keys"
+            {:error, error} ->
+              {:error, error}
+
+            %{body: _, status: _} = result ->
+              result |> handle_result(env)
+
+            %{body: _} ->
+              raise "Mocked response must have a :status key"
+
+            %{} ->
+              raise "Mocked response must have a :body key"
+
+            _ ->
+              raise "Mocked response must be an error tuple or a map with :body and :status keys"
           end
       end
     end
@@ -162,7 +171,7 @@ defmodule TeslaCoil.Router do
       _ -> false
     end)
     |> case do
-      "application/json" -> body |> Jason.decode!()
+      "application/json" -> body |> Jason.decode!() |> maybe_to_map()
       "application/x-www-form-urlencoded" -> body |> URI.decode_query()
       _ -> body
     end
@@ -173,6 +182,9 @@ defmodule TeslaCoil.Router do
     |> Map.merge(result)
     |> Map.update!(:body, &handle_resp_body/1)
   end
+
+  defp maybe_to_map(body) when is_list(body), do: %{"_json" => body}
+  defp maybe_to_map(body), do: body
 
   defp handle_resp_body(body) do
     if is_map(body) or is_list(body),

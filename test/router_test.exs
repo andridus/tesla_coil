@@ -60,6 +60,15 @@ defmodule TeslaCoil.RouterTest do
     assert request.body == %{"message" => "hello world"}
   end
 
+  test "'post' request uses list body params " do
+    request =
+      [JSON]
+      |> Tesla.client()
+      |> post!("https://tesla.com", ["world"])
+
+    assert request.body == %{"message" => "hello world"}
+  end
+
   test "'get' request uses query params" do
     request = get!("https://tesla.com?target=world")
     assert request.body == %{"message" => "hello world"}
